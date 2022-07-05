@@ -129,13 +129,15 @@ impl<T: EventMessage + Unpin> Stream for Connection<T> {
         // read from the ws
         match Stream::poll_next(Pin::new(&mut pin.ws), cx) {
             Poll::Ready(Some(Ok(msg))) => {
-                return match serde_json::from_slice::<Message<T>>(&msg.into_data()) {
+                let data = &msg.into_data();
+                return match serde_json::from_slice::<Message<T>>(data) {
                     Ok(msg) => {
                         log::trace!("Received {:?}", msg);
                         Poll::Ready(Some(Ok(msg)))
                     }
                     Err(err) => {
-                        log::error!("Failed to deserialize WS response {}", err);
+                        let data = std::str::from_utf8(data).unwrap_or_default();
+                        log::error!("Failed to deserialize WS response {} [{}]", err, data);
                         Poll::Ready(Some(Err(err.into())))
                     }
                 };
