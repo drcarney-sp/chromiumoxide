@@ -4223,6 +4223,7 @@ domain Network
       SignedExchange
       Ping
       CSPViolationReport
+      Preflight
       Other
 
   # Unique loader identifier.
@@ -4594,6 +4595,7 @@ domain Network
         script
         preload
         SignedExchange
+        preflight
         other
       # Initiator JavaScript stack trace, set for Script only.
       optional Runtime.StackTrace stack

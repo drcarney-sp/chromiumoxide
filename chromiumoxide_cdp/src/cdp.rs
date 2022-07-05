@@ -46491,6 +46491,8 @@ pub mod browser_protocol {
             Ping,
             #[serde(rename = "CSPViolationReport")]
             CspViolationReport,
+            #[serde(rename = "Preflight")]
+            Preflight,
             #[serde(rename = "Other")]
             Other,
         }
@@ -46512,6 +46514,7 @@ pub mod browser_protocol {
                     ResourceType::SignedExchange => "SignedExchange",
                     ResourceType::Ping => "Ping",
                     ResourceType::CspViolationReport => "CSPViolationReport",
+                    ResourceType::Preflight => "Preflight",
                     ResourceType::Other => "Other",
                 }
             }
@@ -46537,6 +46540,7 @@ pub mod browser_protocol {
                     "CSPViolationReport" | "CspViolationReport" | "cspviolationreport" => {
                         Ok(ResourceType::CspViolationReport)
                     }
+                    "Preflight" | "preflight" => Ok(ResourceType::Preflight),
                     "Other" | "other" => Ok(ResourceType::Other),
                     _ => Err(s.to_string()),
                 }
@@ -48641,6 +48645,8 @@ pub mod browser_protocol {
             Preload,
             #[serde(rename = "SignedExchange")]
             SignedExchange,
+            #[serde(rename = "preflight")]
+            Preflight,
             #[serde(rename = "other")]
             Other,
         }
@@ -48651,6 +48657,7 @@ pub mod browser_protocol {
                     InitiatorType::Script => "script",
                     InitiatorType::Preload => "preload",
                     InitiatorType::SignedExchange => "SignedExchange",
+                    InitiatorType::Preflight => "preflight",
                     InitiatorType::Other => "other",
                 }
             }
@@ -48663,6 +48670,7 @@ pub mod browser_protocol {
                     "script" | "Script" => Ok(InitiatorType::Script),
                     "preload" | "Preload" => Ok(InitiatorType::Preload),
                     "SignedExchange" | "signedexchange" => Ok(InitiatorType::SignedExchange),
+                    "preflight" | "Preflight" => Ok(InitiatorType::Preflight),
                     "other" | "Other" => Ok(InitiatorType::Other),
                     _ => Err(s.to_string()),
                 }
