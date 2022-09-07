@@ -44,6 +44,19 @@ mod session;
 pub mod target;
 pub mod viewport;
 
+
+pub trait GlobalEventListener : std::fmt::Debug  {
+  fn process_event(&self, message: &CdpEventMessage);
+}
+
+#[derive(Default, Debug)]
+pub struct NullGlobalEventListener {
+}
+
+impl GlobalEventListener for NullGlobalEventListener {
+  fn process_event(&self, _message: &CdpEventMessage) {}
+}
+
 /// The handler that monitors the state of the chromium browser and drives all
 /// the requests and events.
 #[must_use = "streams do nothing unless polled"]
@@ -75,6 +88,7 @@ pub struct Handler {
     next_navigation_id: usize,
     /// How this handler will configure targets etc,
     config: HandlerConfig,
+    global_event_listener: Option<Box<dyn GlobalEventListener>>,
 }
 
 impl Handler {
@@ -97,6 +111,7 @@ impl Handler {
             .iter()
             .map(|id| BrowserContext::from(id.clone()))
             .collect();
+        let global_event_listener = None;
 
         Self {
             pending_commands: Default::default(),
@@ -111,6 +126,7 @@ impl Handler {
             evict_command_timeout: PeriodicJob::new(config.request_timeout),
             next_navigation_id: 0,
             config,
+            global_event_listener,
         }
     }
 
@@ -132,6 +148,10 @@ impl Handler {
     /// Iterator over all currently available browser contexts
     pub fn browser_contexts(&self) -> impl Iterator<Item = &BrowserContext> + '_ {
         self.browser_contexts.iter()
+    }
+
+    pub fn set_global_event_listener(&mut self, listener: Box<dyn GlobalEventListener>) {
+        self.global_event_listener = Some(listener);
     }
 
     /// received a response to a navigation request like `Page.navigate`
@@ -330,6 +350,9 @@ impl Handler {
 
     /// Process an incoming event read from the websocket
     fn on_event(&mut self, event: CdpEventMessage) {
+        if let Some(global_event_listener) = &self.global_event_listener {
+            global_event_listener.process_event(&event);
+        }
         if let Some(ref session_id) = event.session_id {
             if let Some(session) = self.sessions.get(session_id.as_str()) {
                 if let Some(target) = self.targets.get_mut(session.target_id()) {
