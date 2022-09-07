@@ -45,7 +45,7 @@ pub mod target;
 pub mod viewport;
 
 
-pub trait GlobalEventListener : std::fmt::Debug  {
+pub trait GlobalEventListener : std::fmt::Debug + Send {
   fn process_event(&self, message: &CdpEventMessage);
 }
 
