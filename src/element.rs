@@ -218,6 +218,20 @@ impl Element {
             .await
     }
 
+    pub async fn call_js_fn_return_by_value(
+        &self,
+        function_declaration: impl Into<String>,
+        await_promise: bool,
+    ) -> Result<CallFunctionOnReturns> {
+        self.tab
+            .call_js_fn_return_by_value(
+                function_declaration,
+                await_promise,
+                self.remote_object_id.clone(),
+            )
+            .await
+    }
+
     /// Returns a JSON representation of this element.
     pub async fn json_value(&self) -> Result<serde_json::Value> {
         let element_json = self

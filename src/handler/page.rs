@@ -241,6 +241,27 @@ impl PageInner {
         Ok(resp.result)
     }
 
+    pub async fn call_js_fn_return_by_value(
+        &self,
+        function_declaration: impl Into<String>,
+        await_promise: bool,
+        remote_object_id: RemoteObjectId,
+    ) -> Result<CallFunctionOnReturns> {
+        let resp = self
+            .execute(
+                CallFunctionOnParams::builder()
+                    .object_id(remote_object_id)
+                    .function_declaration(function_declaration)
+                    .generate_preview(true)
+                    .return_by_value(true)
+                    .await_promise(await_promise)
+                    .build()
+                    .unwrap(),
+            )
+            .await?;
+        Ok(resp.result)
+    }
+
     pub async fn evaluate_expression(
         &self,
         evaluate: impl Into<EvaluateParams>,
