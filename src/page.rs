@@ -846,6 +846,10 @@ impl Page {
         self.inner.execution_context().await
     }
 
+    pub async fn execution_context_for_frame(&self, frame_id: FrameId) -> Result<Option<ExecutionContextId>> {
+        self.inner.execution_context_for_world(DOMWorldKind::Main, Some(frame_id)).await
+    }
+
     /// Returns the secondary execution context identifier of this page that
     /// represents the context for JavaScript execution for manipulating the
     /// DOM.
@@ -896,7 +900,7 @@ impl Page {
 
         call.execution_context_id = self
             .inner
-            .execution_context_for_world(DOMWorldKind::Secondary)
+            .execution_context_for_world(DOMWorldKind::Secondary, None)
             .await?;
 
         self.evaluate_function(call).await?;

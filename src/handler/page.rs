@@ -18,7 +18,7 @@ use chromiumoxide_cdp::cdp::browser_protocol::input::{
     MouseButton,
 };
 use chromiumoxide_cdp::cdp::browser_protocol::page::{
-    GetLayoutMetricsParams, GetLayoutMetricsReturns, Viewport,
+    GetLayoutMetricsParams, GetLayoutMetricsReturns, Viewport, FrameId,
 };
 use chromiumoxide_cdp::cdp::browser_protocol::target::{ActivateTargetParams, SessionId, TargetId};
 use chromiumoxide_cdp::cdp::js_protocol::runtime::{
@@ -308,24 +308,25 @@ impl PageInner {
     }
 
     pub async fn execution_context(&self) -> Result<Option<ExecutionContextId>> {
-        self.execution_context_for_world(DOMWorldKind::Main).await
+        self.execution_context_for_world(DOMWorldKind::Main, None).await
     }
 
     pub async fn secondary_execution_context(&self) -> Result<Option<ExecutionContextId>> {
-        self.execution_context_for_world(DOMWorldKind::Secondary)
+        self.execution_context_for_world(DOMWorldKind::Secondary, None)
             .await
     }
 
     pub async fn execution_context_for_world(
         &self,
         dom_world: DOMWorldKind,
+        frame_id: Option<FrameId>,
     ) -> Result<Option<ExecutionContextId>> {
         let (tx, rx) = oneshot_channel();
         self.sender
             .clone()
             .send(TargetMessage::GetExecutionContext(GetExecutionContext {
                 dom_world,
-                frame_id: None,
+                frame_id: frame_id,
                 tx,
             }))
             .await?;
