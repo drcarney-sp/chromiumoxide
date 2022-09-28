@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 
 use async_tungstenite::WebSocketStream;
+use async_tungstenite::tungstenite::protocol::WebSocketConfig;
 use futures::stream::Stream;
 use futures::task::{Context, Poll};
 use futures::Sink;
@@ -37,12 +38,12 @@ pub struct Connection<T: EventMessage> {
 }
 
 impl<T: EventMessage + Unpin> Connection<T> {
-    pub async fn connect(debug_ws_url: impl AsRef<str>) -> Result<Self> {
+    pub async fn connect(debug_ws_url: impl AsRef<str>, config: Option<WebSocketConfig>) -> Result<Self> {
         cfg_if::cfg_if! {
             if #[cfg(feature = "async-std-runtime")] {
-               let (ws, _) = async_tungstenite::async_std::connect_async(debug_ws_url.as_ref()).await?;
+               let (ws, _) = async_tungstenite::async_std::connect_async_with_config(debug_ws_url.as_ref(), config).await?;
             } else if #[cfg(feature = "tokio-runtime")] {
-                 let (ws, _) = async_tungstenite::tokio::connect_async(debug_ws_url.as_ref()).await?;
+                let (ws, _) = async_tungstenite::tokio::connect_async_with_config(debug_ws_url.as_ref(), config).await?;
             }
         }
 

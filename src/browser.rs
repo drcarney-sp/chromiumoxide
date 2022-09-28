@@ -6,6 +6,7 @@ use std::{
     process::{self, Child, Stdio},
 };
 
+use async_tungstenite::tungstenite::protocol::WebSocketConfig;
 use futures::channel::mpsc::{channel, Sender};
 use futures::channel::oneshot::channel as oneshot_channel;
 use futures::SinkExt;
@@ -43,9 +44,9 @@ pub struct Browser {
 
 impl Browser {
     /// Connect to an already running chromium instance via websocket
-    pub async fn connect(debug_ws_url: impl Into<String>) -> Result<(Self, Handler)> {
+    pub async fn connect(debug_ws_url: impl Into<String>, websocket_config: Option<WebSocketConfig>) -> Result<(Self, Handler)> {
         let debug_ws_url = debug_ws_url.into();
-        let conn = Connection::<CdpEventMessage>::connect(&debug_ws_url).await?;
+        let conn = Connection::<CdpEventMessage>::connect(&debug_ws_url, websocket_config).await?;
 
         let (tx, rx) = channel(1);
 
@@ -69,7 +70,7 @@ impl Browser {
     ///
     /// This fails if no web socket url could be detected from the child
     /// processes stderr for more than 20 seconds.
-    pub async fn launch(config: BrowserConfig) -> Result<(Self, Handler)> {
+    pub async fn launch(config: BrowserConfig, websocket_config: Option<WebSocketConfig>) -> Result<(Self, Handler)> {
         // launch a new chromium instance
         let mut child = config.launch()?;
 
@@ -89,7 +90,7 @@ impl Browser {
             }
         }
 
-        let conn = Connection::<CdpEventMessage>::connect(&debug_ws_url).await?;
+        let conn = Connection::<CdpEventMessage>::connect(&debug_ws_url, websocket_config).await?;
 
         let (tx, rx) = channel(1);
 
