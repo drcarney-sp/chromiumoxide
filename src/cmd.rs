@@ -14,7 +14,7 @@ use crate::error::{CdpError, DeadlineExceeded, Result};
 use crate::handler::REQUEST_TIMEOUT;
 
 /// Deserialize a response
-pub(crate) fn to_command_response<T: Command>(resp: Response, method: MethodId) -> Result<CommandResponse<T::Response>> {
+pub fn to_command_response<T: Command>(resp: Response, method: MethodId) -> Result<CommandResponse<T::Response>> {
   if let Some(res) = resp.result {
     let result = serde_json::from_value(res.clone()).map_err(|e| {
       let msg = format!("error converting response [{}] [{}] [{}]", method, res, e.to_string());
@@ -35,7 +35,7 @@ pub(crate) fn to_command_response<T: Command>(resp: Response, method: MethodId) 
 /// Messages used internally to communicate with the connection, which is
 /// executed in the the background task.
 #[derive(Debug, Serialize)]
-pub(crate) struct CommandMessage<T = Result<Response>> {
+pub struct CommandMessage<T = Result<Response>> {
   pub method: MethodId,
   #[serde(rename = "sessionId", skip_serializing_if = "Option::is_none")]
   pub session_id: Option<SessionId>,

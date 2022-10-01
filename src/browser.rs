@@ -12,7 +12,7 @@ use futures::channel::oneshot::channel as oneshot_channel;
 use futures::SinkExt;
 
 use chromiumoxide_cdp::cdp::browser_protocol::target::{
-    CreateBrowserContextParams, CreateTargetParams, DisposeBrowserContextParams, TargetId,
+    CreateBrowserContextParams, CreateTargetParams, DisposeBrowserContextParams, TargetId, SessionId,
 };
 use chromiumoxide_cdp::cdp::CdpEventMessage;
 use chromiumoxide_types::*;
@@ -70,7 +70,11 @@ impl Browser {
     ///
     /// This fails if no web socket url could be detected from the child
     /// processes stderr for more than 20 seconds.
-    pub async fn launch(config: BrowserConfig, websocket_config: Option<WebSocketConfig>) -> Result<(Self, Handler)> {
+    pub async fn launch(config: BrowserConfig) -> Result<(Self, Handler)> {
+        Self::launch_with_ws_config(config, None).await
+    }
+
+    pub async fn launch_with_ws_config(config: BrowserConfig, websocket_config: Option<WebSocketConfig>) -> Result<(Self, Handler)> {
         // launch a new chromium instance
         let mut child = config.launch()?;
 
@@ -210,6 +214,18 @@ impl Browser {
         let method = cmd.identifier();
         let msg = CommandMessage::new(cmd, tx)?;
 
+        self.sender
+            .clone()
+            .send(HandlerMessage::Command(msg))
+            .await?;
+        let resp = rx.await??;
+        to_command_response::<T>(resp, method)
+    }
+
+    pub async fn execute_with_session<T: Command>(&self, cmd: T, session_id: Option<SessionId>) -> Result<CommandResponse<T::Response>> {
+        let (tx, rx) = oneshot_channel();
+        let method = cmd.identifier();
+        let msg = CommandMessage::with_session(cmd, tx, session_id)?;
         self.sender
             .clone()
             .send(HandlerMessage::Command(msg))
